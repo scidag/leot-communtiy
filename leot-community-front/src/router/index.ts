@@ -75,13 +75,23 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
   const token = userStore.token
 
-  // 如果 token 存在但用户信息不存在，尝试恢复
+  // 如果 token 存在但用户信息不存在，尝试恢复并验证后端状态
   if (token && !userStore.user) {
     userStore.restoreUser()
+    
+    // 验证后端用户状态
+    try {
+      await userStore.initUser()
+    } catch (error) {
+      console.error('验证用户状态失败:', error)
+      userStore.clearUser()
+      next('/login')
+      return
+    }
   }
 
   // 检查是否需要登录

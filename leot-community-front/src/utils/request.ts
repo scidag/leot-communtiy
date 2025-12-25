@@ -1,6 +1,5 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios'
 import { ElMessage, ElLoading } from 'element-plus'
-import { ApiResponse } from '@/types/user'
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
@@ -16,7 +15,7 @@ let loadingInstance: any = null
 
 // 请求拦截器
 service.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config: any) => {
     // 显示 loading
     loadingInstance = ElLoading.service({
       lock: true,
@@ -32,7 +31,7 @@ service.interceptors.request.use(
 
     return config
   },
-  (error: AxiosError) => {
+  (error: any) => {
     loadingInstance?.close()
     ElMessage.error('请求错误')
     return Promise.reject(error)
@@ -41,17 +40,20 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
+  (response: AxiosResponse<any>) => {
     loadingInstance?.close()
 
-    const res = response.data
+    const res: any = response.data
 
-    // 如果返回的状态码不是 200，则视为错误
-    if (res.code !== 200 && res.code !== 0) {
-      ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || '请求失败'))
+    // 如果返回的业务状态码不是 200/0，则视为业务错误，交给调用方处理展示，避免 interceptor 重复弹窗
+    if (res && res.code !== undefined && res.code !== 200 && res.code !== 0) {
+      const err: any = new Error(res.message || '请求失败')
+      // 模拟 axios 错误对象的结构，便于调用方从 error.response.data 读取后端返回
+      err.response = response
+      return Promise.reject(err)
     }
 
+    // 返回解析后的业务数据（可能为原始 data 或后端自定义结构）
     return res
   },
   (error: AxiosError) => {
@@ -72,9 +74,19 @@ service.interceptors.response.use(
         case 404:
           ElMessage.error('请求错误，未找到该资源')
           break
-        case 500:
-          ElMessage.error('服务器错误')
+        case 500: {
+          // 后端可能在 response.data 中携带业务异常信息（或 Spring 默认错误结构），
+          // 不在 interceptor 直接弹出，避免与页面层重复提示。
+          const respData: any = error.response.data
+          const serverMsg = respData?.message || respData?.error || (typeof respData === 'string' ? respData : null)
+          if (serverMsg) {
+            // 将后端信息放到 error.message，以便调用方统一展示
+            try {
+              ;(error as any).message = serverMsg
+            } catch (e) {}
+          }
           break
+        }
         default:
           ElMessage.error(`请求失败: ${error.message}`)
       }

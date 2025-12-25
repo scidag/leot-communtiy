@@ -145,7 +145,30 @@ const handleLogin = async () => {
         }
       } catch (error: any) {
         console.log(error)
-        ElMessage.error(error.message || '登录失败')
+        // 优先展示后端返回的结构化错误信息，优先级：description > message > error > resp string > error.message
+        const resp = error?.response?.data
+        let msg = '登录失败'
+        if (resp) {
+          if (typeof resp === 'string') {
+            msg = resp
+          } else if (resp.description) {
+            msg = resp.description
+          } else if (resp.message) {
+            msg = resp.message
+          } else if (resp.error) {
+            msg = resp.error
+          } else if (resp.data && resp.data.description) {
+            msg = resp.data.description
+          } else if (resp.data && resp.data.message) {
+            msg = resp.data.message
+          } else if (resp.status && resp.error) {
+            // Spring Boot 默认错误结构
+            msg = resp.error || `服务器错误 ${resp.status}`
+          }
+        } else if (error?.message) {
+          msg = error.message
+        }
+        ElMessage.error(msg)
       } finally {
         loading.value = false
       }

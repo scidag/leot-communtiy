@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = "com.leot.api.client")
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.leot.userservice", "com.leot.leotcommon", "com.leot"})
 public class UserServiceApplication {
 
 	public static void main(String[] args) {
