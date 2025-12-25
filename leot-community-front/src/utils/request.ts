@@ -24,10 +24,10 @@ service.interceptors.request.use(
       background: 'rgba(0, 0, 0, 0.7)'
     })
 
-    // 从 localStorage 读取 token
+    // 从 localStorage 读取 token（Sa-Token 使用 satoken 作为 header 名称）
     const token = localStorage.getItem('token')
     if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`
+      config.headers['satoken'] = token
     }
 
     return config

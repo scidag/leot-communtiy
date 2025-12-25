@@ -17,6 +17,7 @@ import com.leot.baguservice.service.QuestionCommentService;
 import com.leot.leotcommon.GlobalReture.ErrorCode;
 import com.leot.leotcommon.exception.BusinessException;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 /**
  * 针对表【question_comment(题目评论)】的数据库操作Service实现
  */
+@Slf4j
 @Service
 public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMapper, QuestionComment>
         implements QuestionCommentService {
@@ -39,6 +41,7 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long addComment(AddCommentDTO dto, Long userId) {
+        log.info("发表评论, questionId={}, userId={}", dto != null ? dto.getQuestionId() : null, userId);
         // 参数校验
         if (ObjUtil.isEmpty(dto)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "请求参数不能为空");
@@ -67,14 +70,17 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
         // 保存到数据库
         boolean saved = this.save(comment);
         if (!saved) {
+            log.error("发表评论失败, questionId={}, userId={}", dto.getQuestionId(), userId);
             throw new BusinessException(ErrorCode.DATABASE_OPERATION_ERROR, "创建评论失败");
         }
+        log.info("发表评论成功, commentId={}", comment.getId());
         return comment.getId();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long replyComment(ReplyCommentDTO dto, Long userId) {
+        log.info("回复评论, parentId={}, userId={}", dto != null ? dto.getParentId() : null, userId);
         // 参数校验
         if (ObjUtil.isEmpty(dto)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "请求参数不能为空");
@@ -95,6 +101,7 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
         // 检查父评论是否存在
         QuestionComment parentComment = this.getById(dto.getParentId());
         if (parentComment == null) {
+            log.warn("回复评论失败, 父评论不存在, parentId={}", dto.getParentId());
             throw new BusinessException(ErrorCode.NO_FOUND, "父评论不存在");
         }
 
@@ -113,14 +120,17 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
         // 保存到数据库
         boolean saved = this.save(comment);
         if (!saved) {
+            log.error("回复评论失败, parentId={}, userId={}", dto.getParentId(), userId);
             throw new BusinessException(ErrorCode.DATABASE_OPERATION_ERROR, "回复评论失败");
         }
+        log.info("回复评论成功, commentId={}", comment.getId());
         return comment.getId();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteComment(Long commentId, Long userId, boolean isAdmin) {
+        log.info("删除评论, commentId={}, userId={}, isAdmin={}", commentId, userId, isAdmin);
         // 参数校验
         if (ObjUtil.isEmpty(commentId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "评论ID不能为空");
@@ -132,16 +142,20 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
         // 检查评论是否存在
         QuestionComment comment = this.getById(commentId);
         if (comment == null) {
+            log.warn("删除评论失败, 评论不存在, commentId={}", commentId);
             throw new BusinessException(ErrorCode.NO_FOUND, "评论不存在");
         }
 
         // 权限校验：只有评论作者或管理员可以删除
         if (!isAdmin && !comment.getUserId().equals(userId)) {
+            log.warn("删除评论失败, 无权限, commentId={}, userId={}, commentUserId={}", commentId, userId, comment.getUserId());
             throw new BusinessException(ErrorCode.NO_AUTH, "无权限删除该评论");
         }
 
         // 逻辑删除评论
-        return this.removeById(commentId);
+        boolean result = this.removeById(commentId);
+        log.info("删除评论完成, commentId={}, result={}", commentId, result);
+        return result;
     }
 
 
@@ -209,6 +223,7 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean thumbComment(Long commentId, Long userId) {
+        log.info("点赞/取消点赞评论, commentId={}, userId={}", commentId, userId);
         // 参数校验
         if (ObjUtil.isEmpty(commentId) || ObjUtil.isEmpty(userId)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "参数不能为空");
@@ -217,6 +232,7 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
         // 检查评论是否存在
         QuestionComment comment = this.getById(commentId);
         if (comment == null) {
+            log.warn("点赞评论失败, 评论不存在, commentId={}", commentId);
             throw new BusinessException(ErrorCode.NO_FOUND, "评论不存在");
         }
 
@@ -230,6 +246,7 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
             // 已点赞，取消点赞
             questionCommentThumbMapper.deleteById(existingThumb.getId());
             questionCommentMapper.updateThumbNum(commentId, -1);
+            log.info("取消点赞评论成功, commentId={}, userId={}", commentId, userId);
             return false;
         } else {
             // 未点赞，添加点赞
@@ -239,6 +256,7 @@ public class QuestionCommentServiceImpl extends ServiceImpl<QuestionCommentMappe
             thumb.setCreateTime(new Date());
             questionCommentThumbMapper.insert(thumb);
             questionCommentMapper.updateThumbNum(commentId, 1);
+            log.info("点赞评论成功, commentId={}, userId={}", commentId, userId);
             return true;
         }
     }

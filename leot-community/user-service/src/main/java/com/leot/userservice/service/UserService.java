@@ -1,8 +1,9 @@
 package com.leot.userservice.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.leot.userservice.domain.dto.QueryUserDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.leot.api.dto.UserDTO;
+import com.leot.userservice.domain.dto.QueryUserDTO;
 import com.leot.userservice.domain.pojo.User;
 import com.leot.userservice.domain.vo.AdminGetUserVO;
 import com.leot.userservice.domain.vo.UserLoginVO;
@@ -75,5 +76,14 @@ public interface UserService extends IService<User> {
     QueryWrapper<User> getQueryWrapper(QueryUserDTO queryUserDTO);
 
     boolean isAdmin(User user);
+
+    /**
+     * 将 User 实体转换为 UserDTO（脱敏）
+     * 用于服务间调用返回脱敏后的用户信息
+     *
+     * @param user 用户实体
+     * @return 脱敏后的用户DTO
+     */
+    UserDTO convertToDTO(User user);
 
 }

@@ -19,6 +19,7 @@ import com.leot.baguservice.service.QuestionBankService;
 import com.leot.leotcommon.GlobalReture.ErrorCode;
 import com.leot.leotcommon.exception.BusinessException;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 /**
  * 针对表【question_bank(题库)】的数据库操作Service实现
  */
+@Slf4j
 @Service
 public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, QuestionBank>
         implements QuestionBankService {
@@ -39,6 +41,7 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long addQuestionBank(AddQuestionBankDTO dto, Long userId) {
+        log.info("创建题库, userId={}, title={}", userId, dto != null ? dto.getTitle() : null);
         // 参数校验
         if (ObjUtil.isEmpty(dto)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "请求参数不能为空");
@@ -59,14 +62,17 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         // 保存到数据库
         boolean saved = this.save(questionBank);
         if (!saved) {
+            log.error("创建题库失败, userId={}, title={}", userId, dto.getTitle());
             throw new BusinessException(ErrorCode.DATABASE_OPERATION_ERROR, "创建题库失败");
         }
+        log.info("创建题库成功, questionBankId={}", questionBank.getId());
         return questionBank.getId();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean updateQuestionBank(UpdateQuestionBankDTO dto) {
+        log.info("更新题库, questionBankId={}", dto != null ? dto.getId() : null);
         // 参数校验
         if (ObjUtil.isEmpty(dto) || ObjUtil.isEmpty(dto.getId())) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "请求参数不能为空");
@@ -75,6 +81,7 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         // 检查题库是否存在
         QuestionBank existingBank = this.getById(dto.getId());
         if (existingBank == null) {
+            log.warn("更新题库失败, 题库不存在, questionBankId={}", dto.getId());
             throw new BusinessException(ErrorCode.NO_FOUND, "题库不存在");
         }
 
@@ -89,12 +96,15 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         questionBank.setUpdateTime(new Date());
         questionBank.setEditTime(new Date());
 
-        return this.updateById(questionBank);
+        boolean result = this.updateById(questionBank);
+        log.info("更新题库完成, questionBankId={}, result={}", dto.getId(), result);
+        return result;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteQuestionBank(Long id) {
+        log.info("删除题库, questionBankId={}", id);
         // 参数校验
         if (ObjUtil.isEmpty(id)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "题库ID不能为空");
@@ -103,16 +113,20 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         // 检查题库是否存在
         QuestionBank existingBank = this.getById(id);
         if (existingBank == null) {
+            log.warn("删除题库失败, 题库不存在, questionBankId={}", id);
             throw new BusinessException(ErrorCode.NO_FOUND, "题库不存在");
         }
 
         // 解除该题库与所有题目的关联（硬删除关联记录）
         QueryWrapper<QuestionBankQuestion> deleteWrapper = new QueryWrapper<>();
         deleteWrapper.eq("questionBankId", id);
-        questionBankQuestionMapper.delete(deleteWrapper);
+        int deletedRelations = questionBankQuestionMapper.delete(deleteWrapper);
+        log.info("解除题库关联, questionBankId={}, deletedRelations={}", id, deletedRelations);
 
         // 逻辑删除题库
-        return this.removeById(id);
+        boolean result = this.removeById(id);
+        log.info("删除题库完成, questionBankId={}, result={}", id, result);
+        return result;
     }
 
     @Override

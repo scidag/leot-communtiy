@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.leot.api.dto.UserDTO;
 import com.leot.leotcommon.GlobalReture.ErrorCode;
 import com.leot.leotcommon.constant.UserConstant;
 import com.leot.leotcommon.enums.UserRoleEnum;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
-* @author lx
+* @author lx  leot
 * @description 针对表【user(用户)】的数据库操作Service实现
 * @createDate 2025-11-27 20:44:18
 */
@@ -117,13 +118,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //存登录态
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE,one);
         //记录登录态到  Sa-token
-
         StpUtil.login(one.getId());
         StpUtil.getSession().set(UserConstant.USER_LOGIN_STATE,one);
 
-//        StpKit.SPACE.login(one.getId());
-//        StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE,one);
-        return  getSafeyUser(one);
+        // 获取脱敏用户信息并设置 token
+        UserLoginVO userLoginVO = getSafeyUser(one);
+        // 设置 Sa-Token 的 token 值，用于前端存储和跨服务鉴权
+        userLoginVO.setSatoken(StpUtil.getTokenValue());
+        return userLoginVO;
     }
 
     /**
@@ -176,11 +178,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Boolean removeUserState(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
-        if (userObj==null){
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
-        }
+//        if (userObj==null){
+//            throw new BusinessException(ErrorCode.NOT_LOGIN);
+//        }
         request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
-//        StpKit.SPACE.logout(((User)userObj).getId());
+        StpUtil.logout(((User)userObj).getId());
         Object  partten = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
         if (partten != null){
             return false;
@@ -213,6 +215,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean isAdmin(User user) {
         return user != null && user.getUserRole().equals(UserRoleEnum.ADMIN.getValue());
+    }
+
+    @Override
+    public UserDTO convertToDTO(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setUserName(user.getUserName());
+        userDTO.setUserAccount(user.getUserAccount());
+        userDTO.setUserAvatar(user.getUserAvatar());
+        userDTO.setUserProfile(user.getUserProfile());
+        userDTO.setUserRole(user.getUserRole());
+        return userDTO;
     }
 }
 

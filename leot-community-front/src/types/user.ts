@@ -8,6 +8,7 @@ export interface User {
   userRole: 'user' | 'admin'
   createTime?: string
   updateTime?: string
+  satoken?: string  // Sa-Token 登录凭证
 }
 
 export interface LoginRequest {

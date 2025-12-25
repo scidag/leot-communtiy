@@ -12,6 +12,11 @@ public class UserLoginVO {
     private Long id;
 
     /**
+     * Sa-Token 登录凭证
+     */
+    private String satoken;
+
+    /**
      * 账号
      */
     private String userAccount;

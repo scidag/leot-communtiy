@@ -118,9 +118,12 @@ const handleLogin = async () => {
         console.log(loginForm);
         
         if (res.data) {
-          // 假设后端返回的 token 在响应头或响应体中
-          // 这里需要根据实际后端返回格式调整
-          const token = res.data.id?.toString() || 'mock-token'
+          // 使用后端返回的 Sa-Token 凭证
+          const token = res.data.satoken || ''
+          if (!token) {
+            ElMessage.error('登录失败：未获取到有效凭证')
+            return
+          }
           userStore.setToken(token)
           userStore.setUser(res.data)
           
@@ -128,7 +131,17 @@ const handleLogin = async () => {
           await userStore.initUser()
           
           ElMessage.success('登录成功')
-          router.push('/dashboard')
+          
+          // 管理员登录后显示 5 秒后跳转首页
+          if (res.data.userRole === 'admin') {
+            ElMessage.info('管理员登录成功，5秒后跳转到首页')
+            setTimeout(() => {
+              router.push('/bagu')
+            }, 5000)
+          } else {
+            // 普通用户直接跳转首页
+            router.push('/bagu')
+          }
         }
       } catch (error: any) {
         console.log(error)

@@ -11,15 +11,29 @@
 	<artifactId>leot-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>leot-api</name>
-	<description>leot-api</description>
+	<description>leot-api - API接口定义模块，包含Feign客户端接口和共享DTO</description>
 
 	<properties>
 		<java.version>21</java.version>
 	</properties>
 	<dependencies>
+		<!-- Spring Boot Starter -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<!-- Spring Cloud OpenFeign -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+
+		<!-- 公共组件（BaseResponse, ResultUtil等） -->
+		<dependency>
+			<groupId>com.leot</groupId>
+			<artifactId>leot-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -29,13 +43,6 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+	<!-- 移除 spring-boot-maven-plugin，因为 leot-api 是库模块，不是可执行应用 -->
 
 </project>

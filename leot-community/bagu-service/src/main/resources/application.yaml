@@ -3,11 +3,26 @@ spring:
     name: bagu-service
 
   profiles:
-    active: dev
+    active: prod
+
+  # Redis 配置（Sa-Token 跨服务共享 Token）
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 0
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/community_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/community_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: root
     druid:
@@ -36,6 +51,15 @@ spring:
       config:
         import-check:
           enabled: false
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: basic
+      circuitbreaker:
+        enabled: true
 
 server:
   port: 8082
@@ -44,8 +68,8 @@ server:
 sa-token:
   # token 名称（同时也是 cookie 名称）
   token-name: satoken
-  # token 有效期（单位：秒） 默认30天，-1 代表永久有效
-  timeout: 2592000
+  # token 有效期（单位：秒） 默认30天，-1 代表永久有效  这里设置了7天
+  timeout: 604800
   # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
   active-timeout: -1
   # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
@@ -83,3 +107,11 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.leot.baguservice.controller
+
+cos:
+  client:
+    host: xxx
+    secretId: xxx
+    secretKey: xxx
+    region: ap-xxx
+    bucket: xxx

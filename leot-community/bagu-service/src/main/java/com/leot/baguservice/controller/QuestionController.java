@@ -1,6 +1,5 @@
 package com.leot.baguservice.controller;
 
-import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -111,11 +110,11 @@ public class QuestionController {
      * 点赞/取消点赞题目（需登录）
      */
     @PostMapping("/thumb")
-    @SaCheckLogin
     public BaseResponse<Boolean> thumbQuestion(@RequestParam Long questionId) {
         if (questionId == null || questionId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "题目ID无效");
         }
+        // 从 Sa-Token 获取当前登录用户ID（Redis 共享 Token）
         Long userId = StpUtil.getLoginIdAsLong();
         Boolean result = questionService.thumbQuestion(questionId, userId);
         return ResultUtil.success(result);
@@ -125,11 +124,11 @@ public class QuestionController {
      * 收藏/取消收藏题目（需登录）
      */
     @PostMapping("/favour")
-    @SaCheckLogin
     public BaseResponse<Boolean> favourQuestion(@RequestParam Long questionId) {
         if (questionId == null || questionId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "题目ID无效");
         }
+        // 从 Sa-Token 获取当前登录用户ID（Redis 共享 Token）
         Long userId = StpUtil.getLoginIdAsLong();
         Boolean result = questionService.favourQuestion(questionId, userId);
         return ResultUtil.success(result);
@@ -139,11 +138,11 @@ public class QuestionController {
      * 获取用户收藏的题目列表（需登录）
      */
     @PostMapping("/favour/list")
-    @SaCheckLogin
     public BaseResponse<Page<QuestionVO>> listFavourQuestion(@RequestBody PageRequest pageRequest) {
         if (ObjUtil.isEmpty(pageRequest)) {
             throw new BusinessException(ErrorCode.NULL_ERROR, "请求参数不能为空");
         }
+        // 从 Sa-Token 获取当前登录用户ID（Redis 共享 Token）
         Long userId = StpUtil.getLoginIdAsLong();
         Page<QuestionVO> page = questionService.listFavourQuestion(userId, pageRequest);
         return ResultUtil.success(page);

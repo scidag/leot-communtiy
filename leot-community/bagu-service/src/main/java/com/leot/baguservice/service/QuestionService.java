@@ -128,4 +128,14 @@ public interface QuestionService extends IService<Question> {
      * @param isAdd 是否为新增操作
      */
     void validateTitle(String title, boolean isAdd);
+
+    /**
+     * 批量转换 Question 列表为 QuestionVO 列表
+     * 优化：批量获取用户信息，减少远程调用次数
+     *
+     * @param questions 题目列表
+     * @param currentUserId 当前用户ID（用于判断点赞/收藏状态）
+     * @return QuestionVO 列表
+     */
+    List<QuestionVO> convertToVOList(List<Question> questions, Long currentUserId);
 }
