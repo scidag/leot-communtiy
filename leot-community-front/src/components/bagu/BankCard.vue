@@ -9,10 +9,11 @@
   >
     <div class="bank-card__cover">
       <img 
-        v-if="bank.picture" 
+        v-if="bank.picture && !imageError" 
         :src="bank.picture" 
         :alt="bank.title"
         class="bank-card__image"
+        @error="handleImageError"
       />
       <div v-else class="bank-card__placeholder">
         <el-icon :size="48"><Folder /></el-icon>
@@ -36,6 +37,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { Folder, Document } from '@element-plus/icons-vue'
 import GlassCard from './GlassCard.vue'
 import type { QuestionBank } from '@/types/bagu'
@@ -49,6 +51,19 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'click', id: number): void
 }>()
+
+// 图片加载失败状态
+const imageError = ref(false)
+
+// 当 bank.picture 变化时重置错误状态
+watch(() => props.bank.picture, () => {
+  imageError.value = false
+})
+
+// 图片加载失败处理
+const handleImageError = () => {
+  imageError.value = true
+}
 
 const handleClick = () => {
   emit('click', props.bank.id)

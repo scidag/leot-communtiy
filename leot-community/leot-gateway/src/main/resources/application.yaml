@@ -9,6 +9,9 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
   application:
     name: leot-gateway
+  # 文件上传配置 - 网关层面的大小限制
+  codec:
+    max-in-memory-size: 10MB
   cloud:
     nacos:
       discovery:

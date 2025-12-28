@@ -5,6 +5,13 @@ spring:
   profiles:
     active: prod
 
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+
   # Redis 配置（Sa-Token 跨服务共享 Token）
   data:
     redis:

@@ -170,7 +170,7 @@
           <el-input v-model="bankForm.description" type="textarea" :rows="3" placeholder="请输入题库描述" />
         </el-form-item>
         <el-form-item label="封面图">
-          <el-input v-model="bankForm.picture" placeholder="请输入封面图URL" />
+          <ImageUpload v-model="bankForm.picture" biz-type="questionbank" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -266,6 +266,7 @@ import { questionBankApi } from '@/api/questionBank'
 import { getUserList, addUser, updateUserInfo, deleteUser } from '@/api/user'
 import TechHeader from '@/components/bagu/TechHeader.vue'
 import GlassCard from '@/components/bagu/GlassCard.vue'
+import ImageUpload from '@/components/bagu/ImageUpload.vue'
 import type { Question, QuestionBank, AddQuestionDTO, UpdateQuestionDTO, AddQuestionBankDTO, UpdateQuestionBankDTO } from '@/types/bagu'
 import type { User, UserListRequest } from '@/types/user'
 

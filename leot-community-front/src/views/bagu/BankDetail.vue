@@ -17,6 +17,17 @@
           <div v-else class="bank-detail__placeholder">
             <el-icon :size="64"><Folder /></el-icon>
           </div>
+          <!-- 管理员可见的修改封面按钮 -->
+          <el-button 
+            v-if="userStore.isAdmin()"
+            class="bank-detail__edit-cover"
+            type="primary"
+            size="small"
+            :icon="Camera"
+            @click="showEditCoverDialog = true"
+          >
+            修改封面
+          </el-button>
         </div>
         <div class="bank-detail__meta">
           <h1 class="gradient-text">{{ currentBank.title }}</h1>
@@ -78,18 +89,48 @@
         />
       </div>
     </div>
+
+    <!-- 修改封面弹窗 -->
+    <el-dialog
+      v-model="showEditCoverDialog"
+      title="修改题库封面"
+      width="400px"
+      :close-on-click-modal="false"
+    >
+      <div class="edit-cover-dialog">
+        <ImageUpload 
+          v-model="newCoverUrl" 
+          biz-type="questionbank"
+          @success="handleCoverUploadSuccess"
+        />
+      </div>
+      <template #footer>
+        <el-button @click="showEditCoverDialog = false">取消</el-button>
+        <el-button 
+          type="primary" 
+          :loading="savingCover"
+          :disabled="!newCoverUrl"
+          @click="saveCover"
+        >
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Folder, Document, Calendar } from '@element-plus/icons-vue'
+import { ArrowLeft, Folder, Document, Calendar, Camera } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { useBaguStore } from '@/stores/bagu'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import GlassCard from '@/components/bagu/GlassCard.vue'
 import QuestionCard from '@/components/bagu/QuestionCard.vue'
+import ImageUpload from '@/components/bagu/ImageUpload.vue'
+import { questionBankApi } from '@/api/questionBank'
 
 const route = useRoute()
 const router = useRouter()
@@ -100,6 +141,11 @@ const { currentBank, questions, loading, total } = storeToRefs(baguStore)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const expandedId = ref<number | null>(null)
+
+// 修改封面相关
+const showEditCoverDialog = ref(false)
+const newCoverUrl = ref('')
+const savingCover = ref(false)
 
 const bankId = Number(route.params.id)
 
@@ -151,6 +197,38 @@ const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
+
+// 封面上传成功回调
+const handleCoverUploadSuccess = (url: string) => {
+  newCoverUrl.value = url
+}
+
+// 保存封面
+const saveCover = async () => {
+  if (!newCoverUrl.value || !currentBank.value) return
+  
+  savingCover.value = true
+  try {
+    const res = await questionBankApi.update({
+      id: currentBank.value.id,
+      picture: newCoverUrl.value
+    })
+    
+    if (res.code === 0) {
+      ElMessage.success('封面修改成功')
+      // 更新本地数据
+      currentBank.value.picture = newCoverUrl.value
+      showEditCoverDialog.value = false
+      newCoverUrl.value = ''
+    } else {
+      ElMessage.error(res.message || '修改失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '修改失败')
+  } finally {
+    savingCover.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -183,12 +261,25 @@ const formatDate = (dateStr: string) => {
   height: 150px;
   border-radius: var(--radius-md);
   overflow: hidden;
+  position: relative;
 }
 
 .bank-detail__cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.bank-detail__edit-cover {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.bank-detail__cover:hover .bank-detail__edit-cover {
+  opacity: 1;
 }
 
 .bank-detail__placeholder {
@@ -259,5 +350,16 @@ const formatDate = (dateStr: string) => {
     width: 100%;
     height: 200px;
   }
+  
+  .bank-detail__edit-cover {
+    opacity: 1;
+  }
+}
+
+/* 修改封面弹窗样式 */
+.edit-cover-dialog {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
 }
 </style>
