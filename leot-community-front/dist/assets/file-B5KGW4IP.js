@@ -1,0 +1,1 @@
+import{a9 as t}from"./index-fmth1Foz.js";const p={uploadImage:(a,e="questionbank")=>{const o=new FormData;return o.append("file",a),o.append("bizType",e),t.post("/bagu/file/upload/image",o,{headers:{"Content-Type":"multipart/form-data"}})}},r=(a,e="questionbank")=>p.uploadImage(a,e);export{r as u};

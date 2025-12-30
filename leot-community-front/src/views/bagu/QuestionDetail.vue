@@ -78,7 +78,7 @@
               <el-icon><Document /></el-icon>
               题目内容
             </h2>
-            <div class="content-text" v-html="currentQuestion.content"></div>
+            <MarkdownRenderer :content="currentQuestion.content" />
           </div>
           
           <div v-if="currentQuestion.answer" class="content-section">
@@ -86,7 +86,7 @@
               <el-icon><Checked /></el-icon>
               参考答案
             </h2>
-            <div class="content-text" v-html="currentQuestion.answer"></div>
+            <MarkdownRenderer :content="currentQuestion.answer" />
           </div>
         </div>
       </GlassCard>
@@ -113,6 +113,7 @@ import { useBaguStore } from '@/stores/bagu'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import GlassCard from '@/components/bagu/GlassCard.vue'
+import MarkdownRenderer from '@/components/bagu/MarkdownRenderer.vue'
 
 const route = useRoute()
 const router = useRouter()

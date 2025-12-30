@@ -43,7 +43,7 @@
           <GlassCard padding="24px">
             <div class="manage-header">
               <h3>题目列表</h3>
-              <el-button type="primary" :icon="Plus" @click="openQuestionDialog()">
+              <el-button type="primary" :icon="Plus" @click="goToAddQuestion">
                 新增题目
               </el-button>
             </div>
@@ -63,7 +63,7 @@
               <el-table-column prop="favourNum" label="收藏" width="80" />
               <el-table-column label="操作" width="150" fixed="right">
                 <template #default="{ row }">
-                  <el-button type="primary" link @click="openQuestionDialog(row)">编辑</el-button>
+                  <el-button type="primary" link @click="goToEditQuestion(row)">编辑</el-button>
                   <el-button type="danger" link @click="handleDeleteQuestion(row.id)">删除</el-button>
                 </template>
               </el-table-column>
@@ -179,30 +179,6 @@
       </template>
     </el-dialog>
     
-    <!-- 题目编辑弹窗 -->
-    <el-dialog v-model="questionDialogVisible" :title="editingQuestion ? '编辑题目' : '新增题目'" width="700px">
-      <el-form :model="questionForm" label-width="80px">
-        <el-form-item label="标题" required>
-          <el-input v-model="questionForm.title" placeholder="请输入题目标题" />
-        </el-form-item>
-        <el-form-item label="标签">
-          <el-select v-model="questionForm.tags" multiple filterable allow-create placeholder="选择或输入标签">
-            <el-option v-for="tag in allTags" :key="tag" :label="tag" :value="tag" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="题目内容" required>
-          <el-input v-model="questionForm.content" type="textarea" :rows="6" placeholder="请输入题目内容" />
-        </el-form-item>
-        <el-form-item label="参考答案">
-          <el-input v-model="questionForm.answer" type="textarea" :rows="8" placeholder="请输入参考答案" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="questionDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveQuestion">保存</el-button>
-      </template>
-    </el-dialog>
-    
     <!-- 用户编辑弹窗 -->
     <el-dialog v-model="userDialogVisible" :title="editingUser ? '编辑用户' : '新增用户'" width="500px">
       <el-form
@@ -257,6 +233,7 @@
 </template>
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Plus, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
 import { useBaguStore } from '@/stores/bagu'
@@ -267,8 +244,10 @@ import { getUserList, addUser, updateUserInfo, deleteUser } from '@/api/user'
 import TechHeader from '@/components/bagu/TechHeader.vue'
 import GlassCard from '@/components/bagu/GlassCard.vue'
 import ImageUpload from '@/components/bagu/ImageUpload.vue'
-import type { Question, QuestionBank, AddQuestionDTO, UpdateQuestionDTO, AddQuestionBankDTO, UpdateQuestionBankDTO } from '@/types/bagu'
+import type { Question, QuestionBank, AddQuestionBankDTO, UpdateQuestionBankDTO } from '@/types/bagu'
 import type { User, UserListRequest } from '@/types/user'
+
+const router = useRouter()
 
 const baguStore = useBaguStore()
 const { banks, questions, loading, total } = storeToRefs(baguStore)
@@ -285,15 +264,14 @@ const bankForm = reactive<AddQuestionBankDTO & { id?: number }>({
   picture: ''
 })
 
-// 题目表单
-const questionDialogVisible = ref(false)
-const editingQuestion = ref<Question | null>(null)
-const questionForm = reactive<AddQuestionDTO & { id?: number }>({
-  title: '',
-  content: '',
-  answer: '',
-  tags: []
-})
+// 题目表单 - 改为路由跳转
+const goToAddQuestion = () => {
+  router.push('/admin/question/add')
+}
+
+const goToEditQuestion = (question: Question) => {
+  router.push(`/admin/question/edit/${question.id}`)
+}
 
 // 用户管理相关
 const userLoading = ref(false)
@@ -341,8 +319,6 @@ const userFormRules: FormRules = {
     { required: true, message: '请选择角色', trigger: 'change' }
   ]
 }
-
-const allTags = ref(['Java', 'Spring', 'MySQL', 'Redis', 'JVM', '并发', '网络', '算法', '设计模式', '微服务'])
 
 onMounted(() => {
   baguStore.fetchBanks({ current: 1, pageSize: 100 })
@@ -518,45 +494,6 @@ const handleDeleteBank = async (id: number) => {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
     }
-  }
-}
-
-// 题目操作
-const openQuestionDialog = (question?: Question) => {
-  editingQuestion.value = question || null
-  if (question) {
-    questionForm.id = question.id
-    questionForm.title = question.title
-    questionForm.content = question.content
-    questionForm.answer = question.answer || ''
-    questionForm.tags = question.tags || []
-  } else {
-    questionForm.id = undefined
-    questionForm.title = ''
-    questionForm.content = ''
-    questionForm.answer = ''
-    questionForm.tags = []
-  }
-  questionDialogVisible.value = true
-}
-
-const handleSaveQuestion = async () => {
-  if (!questionForm.title || !questionForm.content) {
-    ElMessage.warning('请填写必填项')
-    return
-  }
-  try {
-    if (editingQuestion.value) {
-      await questionApi.update(questionForm as UpdateQuestionDTO)
-      ElMessage.success('更新成功')
-    } else {
-      await questionApi.add(questionForm)
-      ElMessage.success('创建成功')
-    }
-    questionDialogVisible.value = false
-    fetchQuestions()
-  } catch (error) {
-    ElMessage.error('操作失败')
   }
 }
 

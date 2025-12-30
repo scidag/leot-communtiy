@@ -40,6 +40,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/bagu/bank/:bankId/question/:questionId',
+    name: 'QuestionDetailWithNav',
+    component: () => import('@/views/bagu/QuestionDetailWithNav.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/bagu/question/:id',
     name: 'QuestionDetail',
     component: () => import('@/views/bagu/QuestionDetail.vue'),
@@ -61,6 +67,19 @@ const routes: RouteRecordRaw[] = [
     path: '/admin/bagu',
     name: 'BaguManage',
     component: () => import('@/views/admin/BaguManage.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  // 题目编辑页面
+  {
+    path: '/admin/question/add',
+    name: 'QuestionAdd',
+    component: () => import('@/views/admin/QuestionEditor.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/question/edit/:id',
+    name: 'QuestionEdit',
+    component: () => import('@/views/admin/QuestionEditor.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {

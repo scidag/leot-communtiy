@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import type { Question, QuestionBank, SearchParams, PageParams } from '@/types/bagu'
 import { questionApi } from '@/api/question'
 import { questionBankApi } from '@/api/questionBank'
+import { questionBankQuestionApi } from '@/api/questionBankQuestion'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
@@ -16,6 +17,9 @@ export const useBaguStore = defineStore('bagu', () => {
   const favourites = ref<Question[]>([])
   const loading = ref(false)
   const total = ref(0)
+  
+  // 题库题目导航列表（用于题目详情页左侧导航）
+  const bankQuestionList = ref<Question[]>([])
 
   // 获取题库列表
   async function fetchBanks(params: { current: number; pageSize: number; title?: string } = { current: 1, pageSize: 20 }) {
@@ -169,6 +173,45 @@ export const useBaguStore = defineStore('bagu', () => {
     }
   }
 
+  // 获取题库下所有题目（用于导航列表）
+  async function fetchBankQuestions(bankId: number) {
+    loading.value = true
+    try {
+      const res = await questionBankQuestionApi.listByBankId(bankId)
+      if (res.code === 0) {
+        bankQuestionList.value = res.data || []
+      }
+    } catch (error) {
+      console.error('获取题库题目列表失败', error)
+      bankQuestionList.value = []
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 获取当前题目在列表中的索引
+  function getCurrentQuestionIndex(questionId: number): number {
+    return bankQuestionList.value.findIndex(q => q.id === questionId)
+  }
+
+  // 获取上一题ID
+  function getPrevQuestionId(currentId: number): number | null {
+    const index = getCurrentQuestionIndex(currentId)
+    if (index > 0) {
+      return bankQuestionList.value[index - 1].id
+    }
+    return null
+  }
+
+  // 获取下一题ID
+  function getNextQuestionId(currentId: number): number | null {
+    const index = getCurrentQuestionIndex(currentId)
+    if (index >= 0 && index < bankQuestionList.value.length - 1) {
+      return bankQuestionList.value[index + 1].id
+    }
+    return null
+  }
+
   return {
     banks,
     currentBank,
@@ -177,6 +220,7 @@ export const useBaguStore = defineStore('bagu', () => {
     favourites,
     loading,
     total,
+    bankQuestionList,
     fetchBanks,
     fetchBankDetail,
     fetchQuestions,
@@ -184,6 +228,10 @@ export const useBaguStore = defineStore('bagu', () => {
     fetchQuestionDetail,
     toggleThumb,
     toggleFavour,
-    fetchFavourites
+    fetchFavourites,
+    fetchBankQuestions,
+    getCurrentQuestionIndex,
+    getPrevQuestionId,
+    getNextQuestionId
   }
 })

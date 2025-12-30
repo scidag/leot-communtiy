@@ -43,6 +43,16 @@
             </span>
           </div>
         </div>
+        <!-- 管理员可见的添加题目按钮 -->
+        <div v-if="userStore.isAdmin()" class="bank-detail__actions">
+          <el-button 
+            type="primary"
+            :icon="Plus"
+            @click="goToAddQuestion"
+          >
+            添加题目
+          </el-button>
+        </div>
       </GlassCard>
     </div>
     
@@ -116,13 +126,14 @@
         </el-button>
       </template>
     </el-dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Folder, Document, Calendar, Camera } from '@element-plus/icons-vue'
+import { ArrowLeft, Folder, Document, Calendar, Camera, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useBaguStore } from '@/stores/bagu'
 import { useUserStore } from '@/stores/user'
@@ -147,6 +158,11 @@ const showEditCoverDialog = ref(false)
 const newCoverUrl = ref('')
 const savingCover = ref(false)
 
+// 添加题目 - 改为路由跳转
+const goToAddQuestion = () => {
+  router.push(`/admin/question/add?bankId=${bankId}`)
+}
+
 const bankId = Number(route.params.id)
 
 onMounted(() => {
@@ -169,7 +185,8 @@ const handlePageChange = (page: number) => {
 }
 
 const toggleExpand = (id: number) => {
-  expandedId.value = expandedId.value === id ? null : id
+  // 跳转到带导航的题目详情页
+  router.push(`/bagu/bank/${bankId}/question/${id}`)
 }
 
 const handleThumb = (id: number) => {
@@ -216,7 +233,6 @@ const saveCover = async () => {
     
     if (res.code === 0) {
       ElMessage.success('封面修改成功')
-      // 更新本地数据
       currentBank.value.picture = newCoverUrl.value
       showEditCoverDialog.value = false
       newCoverUrl.value = ''
@@ -361,5 +377,12 @@ const saveCover = async () => {
   display: flex;
   justify-content: center;
   padding: 20px 0;
+}
+
+/* 添加题目按钮区域 */
+.bank-detail__actions {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
 }
 </style>

@@ -10,20 +10,24 @@
     <div class="question-card__header">
       <h3 class="question-card__title">{{ question.title }}</h3>
       <div v-if="showActions" class="question-card__actions">
-        <el-button 
-          :type="question.hasThumb ? 'primary' : 'default'"
-          :icon="question.hasThumb ? StarFilled : Star"
-          circle
-          size="small"
-          @click.stop="handleThumb"
-        />
-        <el-button 
-          :type="question.hasFavour ? 'warning' : 'default'"
-          :icon="question.hasFavour ? FolderChecked : Collection"
-          circle
-          size="small"
-          @click.stop="handleFavour"
-        />
+        <el-tooltip :content="question.hasThumb ? '取消点赞' : '点赞'" placement="top">
+          <el-button 
+            :type="question.hasThumb ? 'primary' : 'default'"
+            :icon="question.hasThumb ? StarFilled : Star"
+            circle
+            size="small"
+            @click.stop="handleThumb"
+          />
+        </el-tooltip>
+        <el-tooltip :content="question.hasFavour ? '取消收藏' : '收藏'" placement="top">
+          <el-button 
+            :type="question.hasFavour ? 'warning' : 'default'"
+            :icon="question.hasFavour ? FolderChecked : Collection"
+            circle
+            size="small"
+            @click.stop="handleFavour"
+          />
+        </el-tooltip>
       </div>
     </div>
     
