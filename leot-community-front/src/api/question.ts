@@ -6,7 +6,10 @@ import type {
   PageResponse, 
   AddQuestionDTO, 
   UpdateQuestionDTO,
-  QueryQuestionDTO
+  QueryQuestionDTO,
+  PdfParseResult,
+  BatchImportRequest,
+  BatchImportResult
 } from '@/types/bagu'
 import type { ApiResponse } from '@/types/user'
 
@@ -77,5 +80,27 @@ export const questionApi = {
    */
   delete: (id: number): Promise<ApiResponse<boolean>> => {
     return request.delete('/bagu/question/delete', { data: { id } })
+  },
+
+  // ========== PDF导入接口 ==========
+
+  /**
+   * 解析PDF文件
+   */
+  parsePdf: (file: File): Promise<ApiResponse<PdfParseResult>> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return request.post('/bagu/question/import/parse', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  /**
+   * 批量导入题目
+   */
+  batchImport: (data: BatchImportRequest): Promise<ApiResponse<BatchImportResult>> => {
+    return request.post('/bagu/question/import/batch', data)
   }
 }

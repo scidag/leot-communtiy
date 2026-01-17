@@ -123,3 +123,38 @@ export interface QueryQuestionDTO extends PageParams {
 export interface QueryQuestionBankDTO extends PageParams {
   title?: string
 }
+
+/**
+ * PDF解析出的题目
+ */
+export interface ParsedQuestion {
+  title: string
+  content: string
+  answer: string
+}
+
+/**
+ * PDF解析结果
+ */
+export interface PdfParseResult {
+  questions: ParsedQuestion[]
+  totalCount: number
+  parseTime: number
+}
+
+/**
+ * 批量导入请求
+ */
+export interface BatchImportRequest {
+  questionBankId: number
+  questions: ParsedQuestion[]
+}
+
+/**
+ * 批量导入结果
+ */
+export interface BatchImportResult {
+  successCount: number
+  failCount: number
+  totalCount: number
+}

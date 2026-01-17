@@ -7,6 +7,21 @@
   --primary-end: #764ba2;
   --primary-color: #667eea;
   
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  /* 过渡 */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 暗色主题（默认） */
+:root,
+:root[data-theme="dark"] {
   /* 背景色 - 深色系 */
   --bg-primary: #0f0f23;
   --bg-secondary: #1a1a2e;
@@ -31,17 +46,34 @@
   /* 阴影 */
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
   --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* 亮色主题 */
+:root[data-theme="light"] {
+  /* 背景色 - 浅色系 */
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef2f7;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-hover: rgba(255, 255, 255, 1);
   
-  /* 圆角 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* 文字色 */
+  --text-primary: #1a1a2e;
+  --text-secondary: rgba(26, 26, 46, 0.75);
+  --text-muted: rgba(26, 26, 46, 0.5);
   
-  /* 过渡 */
-  --transition-fast: 0.2s ease;
-  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 边框色 */
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(102, 126, 234, 0.4);
+  
+  /* 发光效果 */
+  --glow-primary: 0 0 20px rgba(102, 126, 234, 0.25);
+  --glow-hover: 0 0 30px rgba(102, 126, 234, 0.4);
+  --glow-subtle: 0 0 10px rgba(102, 126, 234, 0.15);
+  
+  /* 阴影 */
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 /* 玻璃拟态基础样式 */
@@ -264,17 +296,17 @@
 
 /* ========== Element Plus 全局样式覆盖 ========== */
 
-/* 下拉菜单深色主题 */
+/* 下拉菜单主题 */
 .el-dropdown__popper.el-popper {
-  background: #1a1a2e !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
 .el-dropdown__popper.el-popper .el-popper__arrow::before {
-  background: #1a1a2e !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
 }
 
 .el-dropdown-menu {
@@ -284,7 +316,7 @@
 }
 
 .el-dropdown-menu__item {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-secondary) !important;
   border-radius: 8px !important;
   padding: 10px 16px !important;
   margin: 2px 0 !important;
@@ -294,11 +326,11 @@
 .el-dropdown-menu__item:hover,
 .el-dropdown-menu__item:focus {
   background: rgba(102, 126, 234, 0.2) !important;
-  color: white !important;
+  color: var(--text-primary) !important;
 }
 
 .el-dropdown-menu__item--divided {
-  border-top-color: rgba(255, 255, 255, 0.1) !important;
+  border-top-color: var(--border-color) !important;
   margin-top: 8px !important;
   padding-top: 12px !important;
 }
@@ -309,19 +341,19 @@
   color: inherit;
 }
 
-/* MessageBox 深色主题 */
+/* MessageBox 主题 */
 .el-message-box {
-  background: #1a1a2e !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 16px !important;
 }
 
 .el-message-box__title {
-  color: white !important;
+  color: var(--text-primary) !important;
 }
 
 .el-message-box__message {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-secondary) !important;
 }
 
 .el-message-box__btns .el-button--primary {
@@ -329,24 +361,28 @@
   border: none !important;
 }
 
-/* Message 提示深色主题 */
+/* Message 提示主题 */
 .el-message {
-  background: #1a1a2e !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 12px !important;
 }
 
 .el-message__content {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-secondary) !important;
 }
 
-/* Loading 深色主题 */
+/* Loading 主题 */
 .el-loading-mask {
   background-color: rgba(15, 15, 35, 0.9) !important;
 }
 
+:root[data-theme="light"] .el-loading-mask {
+  background-color: rgba(245, 247, 250, 0.9) !important;
+}
+
 .el-loading-spinner .el-loading-text {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-secondary) !important;
 }
 
 .el-loading-spinner .circular {

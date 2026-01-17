@@ -27,6 +27,14 @@
       
       <!-- 用户区域 -->
       <div class="navbar__user">
+        <!-- 主题切换按钮 -->
+        <button class="navbar__theme-btn" @click="toggleTheme" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
+          <el-icon :size="18">
+            <Sunny v-if="isDark" />
+            <Moon v-else />
+          </el-icon>
+        </button>
+        
         <template v-if="isLoggedIn">
           <el-dropdown trigger="click" @command="handleCommand">
             <div class="navbar__avatar">
@@ -71,17 +79,24 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Reading, Collection, Star, Setting, User, 
-  ArrowDown, SwitchButton 
+  ArrowDown, SwitchButton, Sunny, Moon 
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 
 const isLoggedIn = computed(() => !!userStore.token)
 const isAdmin = computed(() => userStore.user?.userRole === 'admin')
 const userName = computed(() => userStore.user?.userName || '用户')
+const isDark = computed(() => themeStore.theme === 'dark')
+
+const toggleTheme = () => {
+  themeStore.toggleTheme()
+}
 
 const isActive = (path: string) => {
   return route.path.startsWith(path)
@@ -208,6 +223,27 @@ const handleCommand = async (command: string) => {
 .navbar__user {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+/* 主题切换按钮 */
+.navbar__theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.navbar__theme-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(15deg);
 }
 
 .navbar__avatar {

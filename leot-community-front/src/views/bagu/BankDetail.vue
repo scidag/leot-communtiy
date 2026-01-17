@@ -46,11 +46,19 @@
         <!-- 管理员可见的添加题目按钮 -->
         <div v-if="userStore.isAdmin()" class="bank-detail__actions">
           <el-button 
+            class="action-btn"
             type="primary"
             :icon="Plus"
             @click="goToAddQuestion"
           >
             添加题目
+          </el-button>
+          <el-button 
+            class="action-btn pdf-import-btn"
+            :icon="Upload"
+            @click="showPdfImportDialog = true"
+          >
+            PDF导入
           </el-button>
         </div>
       </GlassCard>
@@ -127,13 +135,20 @@
       </template>
     </el-dialog>
 
+    <!-- PDF导入弹窗 -->
+    <PdfImportDialog
+      v-model="showPdfImportDialog"
+      :question-bank-id="bankId"
+      @success="handlePdfImportSuccess"
+    />
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Folder, Document, Calendar, Camera, Plus } from '@element-plus/icons-vue'
+import { ArrowLeft, Folder, Document, Calendar, Camera, Plus, Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useBaguStore } from '@/stores/bagu'
 import { useUserStore } from '@/stores/user'
@@ -141,6 +156,7 @@ import { storeToRefs } from 'pinia'
 import GlassCard from '@/components/bagu/GlassCard.vue'
 import QuestionCard from '@/components/bagu/QuestionCard.vue'
 import ImageUpload from '@/components/bagu/ImageUpload.vue'
+import PdfImportDialog from '@/components/bagu/PdfImportDialog.vue'
 import { questionBankApi } from '@/api/questionBank'
 
 const route = useRoute()
@@ -158,9 +174,20 @@ const showEditCoverDialog = ref(false)
 const newCoverUrl = ref('')
 const savingCover = ref(false)
 
+// PDF导入相关
+const showPdfImportDialog = ref(false)
+
 // 添加题目 - 改为路由跳转
 const goToAddQuestion = () => {
   router.push(`/admin/question/add?bankId=${bankId}`)
+}
+
+// PDF导入成功回调
+const handlePdfImportSuccess = () => {
+  // 刷新题目列表
+  fetchQuestions()
+  // 刷新题库详情（更新题目数量）
+  baguStore.fetchBankDetail(bankId)
 }
 
 const bankId = Number(route.params.id)
@@ -382,7 +409,22 @@ const saveCover = async () => {
 /* 添加题目按钮区域 */
 .bank-detail__actions {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   flex-shrink: 0;
+  gap: 8px;
+}
+
+.bank-detail__actions .action-btn {
+  width: 120px;
+}
+
+.bank-detail__actions .pdf-import-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.bank-detail__actions .pdf-import-btn:hover {
+  opacity: 0.9;
 }
 </style>
