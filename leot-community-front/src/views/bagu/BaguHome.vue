@@ -5,7 +5,19 @@
       subtitle="系统化学习，高效备战面试"
       :show-search="true"
       @search="handleSearch"
-    />
+    >
+      <template #extra>
+        <div v-if="userStore.isAdmin()" class="tech-header__actions">
+          <el-button 
+            type="primary"
+            :icon="Plus"
+            @click="showCreateBankDialog = true"
+          >
+            新建题库
+          </el-button>
+        </div>
+      </template>
+    </TechHeader>
     
     <div class="bagu-home__content">
       <div v-if="loading" class="card-grid">
@@ -46,19 +58,64 @@
         />
       </div>
     </div>
+
+    <!-- 新建题库对话框 -->
+    <el-dialog
+      v-model="showCreateBankDialog"
+      title="新建题库"
+      width="500px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="formRef"
+        :model="bankForm"
+        :rules="bankRules"
+        label-width="80px"
+      >
+        <el-form-item label="题库名称" prop="title">
+          <el-input
+            v-model="bankForm.title"
+            placeholder="请输入题库名称"
+            maxlength="50"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="题库描述" prop="description">
+          <el-input
+            v-model="bankForm.description"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入题库描述"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showCreateBankDialog = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="creating"
+          @click="handleCreateBank"
+        >
+          创建
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Folder } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { Folder, Plus } from '@element-plus/icons-vue'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useBaguStore } from '@/stores/bagu'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import TechHeader from '@/components/bagu/TechHeader.vue'
 import BankCard from '@/components/bagu/BankCard.vue'
+import { questionBankApi } from '@/api/questionBank'
 
 const router = useRouter()
 const baguStore = useBaguStore()
@@ -67,6 +124,22 @@ const { banks, loading, total } = storeToRefs(baguStore)
 
 const currentPage = ref(1)
 const pageSize = ref(12)
+
+// 新建题库相关
+const showCreateBankDialog = ref(false)
+const creating = ref(false)
+const formRef = ref<FormInstance>()
+const bankForm = reactive({
+  title: '',
+  description: ''
+})
+
+const bankRules: FormRules = {
+  title: [
+    { required: true, message: '请输入题库名称', trigger: 'blur' },
+    { min: 2, max: 50, message: '题库名称长度在 2 到 50 个字符', trigger: 'blur' }
+  ]
+}
 
 onMounted(() => {
   fetchData()
@@ -96,6 +169,37 @@ const goToBank = (id: number) => {
     return
   }
   router.push(`/bagu/bank/${id}`)
+}
+
+// 创建题库
+const handleCreateBank = async () => {
+  if (!formRef.value) return
+  
+  await formRef.value.validate(async (valid) => {
+    if (!valid) return
+    
+    creating.value = true
+    try {
+      const res = await questionBankApi.add({
+        title: bankForm.title,
+        description: bankForm.description
+      })
+      
+      if (res.code === 0) {
+        ElMessage.success('题库创建成功')
+        showCreateBankDialog.value = false
+        bankForm.title = ''
+        bankForm.description = ''
+        fetchData() // 刷新列表
+      } else {
+        ElMessage.error(res.message || '创建失败')
+      }
+    } catch (error: any) {
+      ElMessage.error(error.message || '创建失败')
+    } finally {
+      creating.value = false
+    }
+  })
 }
 </script>
 
@@ -132,5 +236,9 @@ const goToBank = (id: number) => {
 .bagu-home__pagination :deep(.el-pager li.is-active) {
   background: var(--primary-gradient);
   color: white;
+}
+
+.tech-header__actions {
+  margin-top: 24px;
 }
 </style>

@@ -409,13 +409,18 @@ const saveCover = async () => {
 /* 添加题目按钮区域 */
 .bank-detail__actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* 保持垂直排列 */
   flex-shrink: 0;
-  gap: 8px;
+  gap: 8px; /* 使用 gap 控制按钮之间的间距，移除或减少 margin/padding */
+  /* 如果需要按钮底部与其它元素有距离，可以添加 margin-bottom */
+  margin-bottom: 16px;
 }
 
 .bank-detail__actions .action-btn {
-  width: 120px;
+  width: 120px; /* 保持原有宽度设定 */
+  margin: 0; /* 清除可能存在的默认 margin */
+  /* 如果按钮本身有 padding，确保一致 */
+  /* padding: 12px 20px; */ /* 示例：如果需要统一 padding */
 }
 
 .bank-detail__actions .pdf-import-btn {
